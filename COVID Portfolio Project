@@ -1,0 +1,134 @@
+
+-- SELECT *
+-- FROM PortfolioProject.CovidVaccinations 
+-- ORDER BY 3,4
+
+SELECT *
+FROM PortfolioProject.CovidDeaths 
+ORDER BY 3,4 
+ 
+
+-- Selecting specific data to use. Ordering by location and then date.
+
+SELECT Location, date, total_cases, new_cases, total_deaths, population
+FROM `lightning-330220.PortfolioProject.CovidDeaths` 
+ORDER BY 1,2
+
+
+-- Looking at Total Cases vs Total Deaths
+-- Shows likelihood of dying if you contract covid in a specific country
+
+SELECT Location, date, total_cases, total_deaths, (total_deaths/total_cases)*100 as DeathPercentage
+FROM `lightning-330220.PortfolioProject.CovidDeaths` 
+WHERE location like "%States%"
+ORDER BY 1,2
+
+-- Looking at Total Cases vs Population
+-- Shows what percentage of population got Covid
+
+SELECT Location, date, population, total_cases, (total_cases/population)*100 as PercentPopulationInfected
+FROM `lightning-330220.PortfolioProject.CovidDeaths` 
+WHERE location like "%States%"
+AND continent IS NOT NULL 
+ORDER BY 1,2
+
+
+-- Looking at Countries with highest infection ate compared to population
+ 
+SELECT Location, population, MAX(total_cases) AS HighestInfectionCount, MAX((total_cases/population))*100 as PercentPopulationInfected
+FROM `lightning-330220.PortfolioProject.CovidDeaths` 
+-- WHERE location like "%States%"
+GROUP BY location, population
+ORDER BY 4 DESC 
+
+
+-- LET'S BREAK THIS DOWN BY CONTINENT
+
+SELECT location, MAX(total_deaths) AS TotalDeathCount
+FROM `lightning-330220.PortfolioProject.CovidDeaths` 
+WHERE continent IS NULL  
+GROUP BY location
+ORDER BY TotalDeathCount DESC 
+
+SELECT continent, MAX(total_deaths) AS TotalDeathCount
+FROM `lightning-330220.PortfolioProject.CovidDeaths` 
+WHERE continent IS NOT NULL  
+GROUP BY continent
+ORDER BY TotalDeathCount DESC
+
+
+-- Global Numbers
+
+SELECT SUM(new_cases) AS  total_cases, SUM(new_deaths) AS total_deaths, SUM(new_deaths)/SUM(new_cases) as DeathPercentage
+FROM `lightning-330220.PortfolioProject.CovidDeaths` 
+-- WHERE location like "%States%"
+WHERE continent IS NOT NULL 
+-- GROUP BY date
+ORDER BY 1,2
+
+
+-- Showing Countries with Highest Death Count per Population
+-- Data groups countries in location column when countries is null
+
+SELECT Location,MAX( total_deaths) AS TotalDeathCount
+FROM `lightning-330220.PortfolioProject.CovidDeaths` 
+WHERE continent IS NOT NULL  
+GROUP BY location
+ORDER BY TotalDeathCount DESC 
+
+
+
+-- Covid Vaccinations
+-- Join
+-- Looking at Total Population vs Vaccinations
+-- Creating a running total of people getting vaccinated
+-- Identifying When and How many vaccinations were given
+
+SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+, SUM(vac.new_vaccinations) OVER (PARTITION BY dea.location ORDER BY dea.location, dea.date) AS RollingPeopleVaccinated
+FROM `lightning-330220.PortfolioProject.CovidDeaths` AS dea
+JOIN `lightning-330220.PortfolioProject.CovidVaccinations` AS vac
+    ON dea.location = vac.location 
+    AND dea.date = vac.date
+WHERE dea.continent IS NOT NULL 
+AND RollingPeopleVaccinated IS NOT NULL
+ORDER BY 2,3
+
+
+
+-- Creating Tables
+-- Shows rolling number of vaccinations by location
+
+SELECT *, (people_fully_vaccinated/population)*100 AS PercentFullyVaccinated
+FROM `lightning-330220.PortfolioProject.PopvsFullyVac`
+WHERE location = "United States"
+ORDER BY PercentFullyVaccinated DESC
+
+
+
+-- Shows the percent of fully vaccinated people in each country as of 2/7/22
+
+SELECT location, MAX(people_fully_vaccinated/population)*100 AS MaxPercentFullyVaccinated
+FROM `lightning-330220.PortfolioProject.PopvsFullyVac`
+GROUP BY location
+ORDER BY MaxPercentFullyVaccinated DESC 
+
+
+
+-- Creating View to store data for later use. 
+
+-- CREATE VIEW PercentPopulationVaccinated AS
+
+SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+, SUM(vac.new_vaccinations) OVER (PARTITION BY dea.location ORDER BY dea.location, dea.date) AS RollingPeopleVaccinated
+FROM `lightning-330220.PortfolioProject.CovidDeaths` AS dea
+JOIN `lightning-330220.PortfolioProject.CovidVaccinations` AS vac
+    ON dea.location = vac.location
+    AND dea.date = vac.date
+WHERE dea.continent IS NOT NULL
+AND vac.new_vaccinations IS NOT NULL 
+-- ORDER BY 2,3
+
+
+SELECT * 
+FROM `lightning-330220.PortfolioProject.PercentPopulationVaccinatedView`
