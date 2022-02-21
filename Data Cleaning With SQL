@@ -1,0 +1,202 @@
+
+-- Cleaning Data in SQL Queries
+
+SELECT *
+FROM `lightning-330220.PortfolioProject.Nashville Housing`
+
+
+------------------------------------------------------------------------------------------------------
+
+-- Standardize Date Format
+
+SELECT saledate, CONVERT(Date, saledate)
+FROM `lightning-330220.PortfolioProject.Nashville Housing`
+
+UPDATE `lightning-330220.PortfolioProject.Nashville Housing`
+SET saledate = CONVERT(Date, saledate)
+
+ALTER TABLE `lightning-330220.PortfolioProject.Nashville Housing`
+ADD saledateconverted DATE;
+
+UPDATE `lightning-330220.PortfolioProject.Nashville Housing`
+SET saledateconverted = CONVERT(Date, saledate)
+
+
+
+------------------------------------------------------------------------------------------------------
+
+
+-- Populate property address data
+
+SELECT *
+FROM `lightning-330220.PortfolioProject.Nashville Housing`
+-- WHERE propertyaddress IS NULL
+ORDER BY ParcelID
+
+
+
+SELECT a.ParcelID, a.propertyaddress, b.ParcelID, b.propertyaddress, IFNULL(a.propertyaddress, b.propertyaddress)
+FROM `lightning-330220.PortfolioProject.Nashville Housing` AS a
+JOIN `lightning-330220.PortfolioProject.Nashville Housing` AS b   
+    ON a.ParcelID = b.ParcelID
+    AND a.UniqueID_ <> b.UniqueID_
+WHERE a.propertyaddress IS NULL 
+
+
+UPDATE a
+SET propertyaddress = IFNULL(a.propertyaddress, b.propertyaddress)
+FROM `lightning-330220.PortfolioProject.Nashville Housing` AS a
+JOIN `lightning-330220.PortfolioProject.Nashville Housing` AS b   
+    ON a.ParcelID = b.ParcelID
+    AND a.UniqueID_ <> b.UniqueID_
+WHERE a.propertyaddress IS NULL 
+
+
+------------------------------------------------------------------------------------------------------
+
+-- Breaking out Address into Individual Columns (Address, City, State)
+
+SELECT *
+FROM `lightning-330220.PortfolioProject.Nashville Housing`
+-- WHERE propertyaddress IS NULL
+-- ORDER BY ParcelID
+
+
+SELECT 
+(SPLIT(propertyaddress, ','))[safe_ordinal(1)] AS Street,
+(SPLIT(propertyaddress, ', '))[safe_ordinal(2)] AS City
+FROM `lightning-330220.PortfolioProject.Nashville Housing`
+
+
+-- Adding Split Columns To The Table
+
+SELECT *, (SPLIT(propertyaddress, ','))[safe_ordinal(1)] AS Street,
+(SPLIT(propertyaddress, ', '))[safe_ordinal(2)] AS City
+FROM `lightning-330220.PortfolioProject.Nashville Housing`
+
+
+-- Replacing Property Address With Split Columns By Joins
+
+SELECT *
+FROM `lightning-330220.PortfolioProject.Nashville Housing`
+
+ALTER TABLE `lightning-330220.PortfolioProject.Nashville Housing 2`
+DROP COLUMN landuse
+
+SELECT UniqueID_, parcelid, landuse
+,(SPLIT(propertyaddress, ','))[safe_ordinal(1)] AS Street
+,(SPLIT(propertyaddress, ', '))[safe_ordinal(2)] AS City
+FROM `lightning-330220.PortfolioProject.Nashville Housing`
+
+SELECT *
+FROM `lightning-330220.PortfolioProject.Nashville Housing 3` AS a
+JOIN `lightning-330220.PortfolioProject.Nashville Housing 2` AS b
+ON a.UniqueID_ = b.UniqueID_
+
+ALTER TABLE `lightning-330220.PortfolioProject.Nashville Housing 4`
+DROP COLUMN UniqueID_
+
+SELECT * 
+FROM `lightning-330220.PortfolioProject.Nashville Housing 4`
+
+
+
+-- Splitting owneraddress into street, city, and state
+
+
+SELECT owneraddress 
+FROM `lightning-330220.PortfolioProject.Nashville Housing 4`
+-- WHERE owneraddress IS NOT NULL
+
+
+SELECT 
+SPLIT(owneraddress, ",")[safe_ordinal(1)] AS owner_street
+, SPLIT(owneraddress, ",")[safe_ordinal(2)] AS owner_city
+, SPLIT(owneraddress, ",")[safe_ordinal(3)] AS owner_state
+FROM `lightning-330220.PortfolioProject.Nashville Housing 4`
+-- WHERE owneraddress IS NOT NULL
+
+
+-- Replacing owneraddress With The Split Address Using Temp Tables and Joins
+
+
+SELECT UniqueID__1 AS UniqueID_, parcelid, landuse, street, city, saledate, saleprice, legalreference, soldasvacant, ownername
+, SPLIT(owneraddress, ",")[safe_ordinal(1)] AS owner_street
+, SPLIT(owneraddress, ",")[safe_ordinal(2)] AS owner_city
+, SPLIT(owneraddress, ",")[safe_ordinal(3)] AS owner_state
+FROM `lightning-330220.PortfolioProject.Nashville Housing 4`
+
+
+SELECT ownername, acreage, taxdistrict, landvalue, buildingvalue, totalvalue, yearbuilt, bedrooms, fullbath, halfbath
+FROM `lightning-330220.PortfolioProject.Nashville Housing 4`
+
+
+SELECT *
+FROM `lightning-330220.PortfolioProject.Nashville Housing 5` AS nh5
+JOIN `lightning-330220.PortfolioProject.Nashville Housing To Join` AS nhj
+ON nh5.ownername = nhj.ownername
+
+
+ALTER TABLE `lightning-330220.PortfolioProject.Nashville Housing 6`
+DROP COLUMN ownername_1
+
+SELECT *
+FROM `lightning-330220.PortfolioProject.Nashville Housing 6`
+
+
+
+-------------------------------------------------------------------------------------------------
+
+-- Change Y and N to Yes and No in "Sold as vacant" field
+
+SELECT DISTINCT(soldasvacant), COUNT(soldasvacant)
+FROM `lightning-330220.PortfolioProject.Nashville Housing`
+GROUP BY soldasvacant
+ORDER BY 2
+
+
+SELECT soldasvacant
+, CASE WHEN soldasvacant = "Y" THEN "Yes"
+    WHEN soldasvacant = "N" THEN "No"
+    ELSE soldasvacant
+    END 
+FROM `lightning-330220.PortfolioProject.Nashville Housing 4`
+
+
+UPDATE `lightning-330220.PortfolioProject.Nashville Housing 4`
+SET soldasvacant = CASE WHEN soldasvacant = "Y" THEN "Yes"
+    WHEN soldasvacant = "N" THEN "No"
+    ELSE soldasvacant
+    END 
+
+
+
+--------------------------------------------------------------------------------------------------
+
+-- Remove Duplicates
+
+-- #RowNumCTE
+SELECT *, 
+    ROW_NUMBER() OVER (
+    PARTITION BY parcelid,
+                 city,
+                 street,
+                 saleprice,
+                 saledate,
+                 legalreference
+                 ORDER BY 
+                    UniqueID_
+                        ) row_num
+FROM `lightning-330220.PortfolioProject.Nashville Housing 6`
+ORDER BY ParcelID
+
+
+DELETE 
+FROM `lightning-330220.PortfolioProject.RowNumCTE`
+WHERE row_num > 1
+-- ORDER BY city
+
+
+
+
+
