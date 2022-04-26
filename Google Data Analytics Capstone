@@ -1,0 +1,279 @@
+Google Data Analytics Capstone Project
+
+
+
+#Install necessary packages
+
+install.packages('tidyverse')
+install.packages('janitor')
+install.packages('lubridate')
+install.packages('scales')
+install.packages('skimr')
+
+#Load libraries
+
+library(tidyverse)
+library(janitor)
+library(lubridate)
+library(scales)
+library(skimr)
+
+#Rename tables to a common format
+
+cyclisticQ1 <- Divvy_Trips_2020_Q1
+cyclistic2004 <- X202004_divvy_tripdata
+cyclistic2005 <- X202005_divvy_tripdata
+cyclistic2006 <- X202006_divvy_tripdata
+cyclistic2007 <- X202007_divvy_tripdata
+cyclistic2008 <- X202008_divvy_tripdata
+cyclistic2009 <- X202009_divvy_tripdata
+cyclistic2010 <- X202010_divvy_tripdata
+cyclistic2011 <- X202011_divvy_tripdata
+cyclistic2012 <- X202012_divvy_tripdata
+cyclistic2101 <- X202101_divvy_tripdata
+cyclistic2102 <- X202102_divvy_tripdata
+cyclistic2103 <- X202103_divvy_tripdata
+cyclistic2104 <- X202104_divvy_tripdata
+cyclistic2105 <- X202105_divvy_tripdata
+cyclistic2106 <- X202106_divvy_tripdata
+cyclistic2107 <- X202107_divvy_tripdata
+cyclistic2108 <- X202108_divvy_tripdata
+cyclistic2109 <- X202109_divvy_tripdata
+cyclistic2110 <- X202110_divvy_tripdata
+cyclistic2111 <- X202111_divvy_tripdata
+cyclistic2112 <- X202112_divvy_tripdata
+
+#Check to see if the column names are consistent
+
+colnames(cyclisticQ1)
+colnames(cyclistic2004)
+colnames(cyclistic2005)
+colnames(cyclistic2006)
+colnames(cyclistic2007)
+colnames(cyclistic2008)
+colnames(cyclistic2009)
+colnames(cyclistic2010)
+colnames(cyclistic2011)
+colnames(cyclistic2012)
+colnames(cyclistic2101)
+colnames(cyclistic2102)
+colnames(cyclistic2103)
+colnames(cyclistic2104)
+colnames(cyclistic2105)
+colnames(cyclistic2106)
+colnames(cyclistic2107)
+colnames(cyclistic2108)
+colnames(cyclistic2109)
+colnames(cyclistic2110)
+colnames(cyclistic2111)
+colnames(cyclistic2112)
+
+#Check to see if data is consistent
+
+str(cyclisticQ1)
+str(cyclistic2004)
+str(cyclistic2005)
+str(cyclistic2006)
+str(cyclistic2007)
+str(cyclistic2008)
+str(cyclistic2009)
+str(cyclistic2010)
+str(cyclistic2011)
+str(cyclistic2012)
+str(cyclistic2101)
+str(cyclistic2102)
+str(cyclistic2103)
+str(cyclistic2104)
+str(cyclistic2105)
+str(cyclistic2106)
+str(cyclistic2107)
+str(cyclistic2108)
+str(cyclistic2109)
+str(cyclistic2110)
+str(cyclistic2111)
+str(cyclistic2112)
+
+
+#Compare data types easily
+
+compare_df_cols(cyclisticQ1, cyclistic2004, cyclistic2005, cyclistic2006, cyclistic2007
+, cyclistic2008, cyclistic2009, cyclistic2010, cyclistic2011, cyclistic2012, cyclistic2101
+, cyclistic2102, cyclistic2103, cyclistic2104, cyclistic2105, cyclistic2106, cyclistic2107
+, cyclistic2107, cyclistic2108, cyclistic2109, cyclistic2110, cyclistic2111, cyclistic2112
+, return = "mismatch")
+
+#Mutate data type from numeric to character for end_station_id and start_station_id
+
+cyclisticQ1 <- mutate(cyclisticQ1, end_station_id = as.character(end_station_id)
+                        , start_station_id = as.character(start_station_id))
+cyclistic2004 <- mutate(cyclistic2004, end_station_id = as.character(end_station_id)
+                        , start_station_id = as.character(start_station_id))
+cyclistic2005 <- mutate(cyclistic2005, end_station_id = as.character(end_station_id)
+                        , start_station_id = as.character(start_station_id))
+cyclistic2006 <- mutate(cyclistic2006, end_station_id = as.character(end_station_id)
+                        , start_station_id = as.character(start_station_id))
+cyclistic2007 <- mutate(cyclistic2007, end_station_id = as.character(end_station_id)
+                        , start_station_id = as.character(start_station_id))
+cyclistic2008 <- mutate(cyclistic2008, end_station_id = as.character(end_station_id)
+                        , start_station_id = as.character(start_station_id))
+cyclistic2009 <- mutate(cyclistic2009, end_station_id = as.character(end_station_id)
+                        , start_station_id = as.character(start_station_id))
+cyclistic2010 <- mutate(cyclistic2010, end_station_id = as.character(end_station_id)
+                        , start_station_id = as.character(start_station_id))
+cyclistic2011 <- mutate(cyclistic2011, end_station_id = as.character(end_station_id)
+                        , start_station_id = as.character(start_station_id))
+
+#Combine all tables into one data frame
+
+cyclistic <- bind_rows(cyclisticQ1, cyclistic2004, cyclistic2005, cyclistic2006, cyclistic2007
+                       , cyclistic2008, cyclistic2009, cyclistic2010, cyclistic2011, cyclistic2012, cyclistic2101
+                       , cyclistic2102, cyclistic2103, cyclistic2104, cyclistic2105, cyclistic2106, cyclistic2107
+                       , cyclistic2107, cyclistic2108, cyclistic2109, cyclistic2110, cyclistic2111, cyclistic2112)
+
+#Check data frame
+
+head(cyclistic)
+colnames(cyclistic)
+str(cyclistic)
+View(cyclistic)
+
+
+#Remove empty rows and columns
+
+cyclistic <- janitor::remove_empty(cyclistic, which = c("cols"))
+cyclistic <- janitor::remove_empty(cyclistic, which = c("rows"))
+
+#Change data type from char to date
+
+cyclistic$started_at <- lubridate::ymd_hms(cyclistic$started_at)
+cyclistic$ended_at <- lubridate::ymd_hms(cyclistic$ended_at)
+
+#Split date and time into two different columns
+
+cyclistic$start_date <- as.Date(cyclistic$started_at)
+cyclistic$start_time <- format(as.POSIXct(cyclistic$started_at),
+                               format = "%H:%M:%S")
+
+cyclistic$end_date <- as.Date(cyclistic$ended_at)
+cyclistic$end_time <- format(as.POSIXct(cyclistic$ended_at),
+                             format = "%H:%M:%S")
+
+
+#Make an hour column to see which hours are the busiest
+
+cyclistic$start_hour <-lubridate::hour(cyclistic$started_at)
+cyclistic$end_hour <- lubridate::hour(cyclistic$ended_at)
+
+
+#Make seperate columns for month, day, year, and day of the week
+
+cyclistic$date <- as.Date(cyclistic$started_at)
+cyclistic$month <- format(as.Date(cyclistic$date), "%m")
+cyclistic$day <- format(as.Date(cyclistic$date), "%d")
+cyclistic$year <- format(as.Date(cyclistic$date), "%Y")
+cyclistic$day_of_week <- format(as.Date(cyclistic$date), "%A")
+
+
+#Calculate length of ride (in hours, minutes, days)
+
+cyclistic$ride_length_hrs <- difftime(cyclistic$ended_at, cyclistic$started_at,
+                                      units = c("hours"))
+cyclistic$ride_length_min <- difftime(cyclistic$ended_at, cyclistic$started_at,
+                                      units = c("mins"))
+
+View(cyclistic)
+
+
+#Make a new data frame where I exclude ride lengths that are <= 0 and >=60000
+#If I was able to ask the stakeholder about the data, I would ask more about the length
+#of the rides to properly identify outliers
+
+cyclistic2<-cyclistic[!(cyclistic$ride_length_min<=0),]
+cyclistic3<-cyclistic2[!(cyclistic2$ride_length_min>=60000),]
+
+View(cyclistic3)
+
+
+#Calculate some simple statistical analysis
+
+mean(cyclistic3$ride_length_min)
+median(cyclistic3$ride_length_min)
+max(cyclistic3$ride_length_min)
+min(cyclistic3$ride_length_min)
+
+
+#Compare usage of bikes by user type
+
+user_type_mean <- aggregate(cyclistic3$ride_length_min~cyclistic3$member_casual, FUN=mean)
+user_type_median <- aggregate(cyclistic3$ride_length_min~cyclistic3$member_casual, FUN=median)
+user_type_max <- aggregate(cyclistic3$ride_length_min~cyclistic3$member_casual, FUN=max)
+user_type_min <- aggregate(cyclistic3$ride_length_min~cyclistic3$member_casual, FUN=min)
+
+user_type_mean
+user_type_median
+user_type_max
+user_type_min
+
+
+#average length of ride of casual and member riders by the day of the week
+
+average_ride_day_of_week <- aggregate(cyclistic3$ride_length_min~cyclistic3$member_casual + 
+            cyclistic3$day_of_week, FUN = mean)
+
+cyclistic3$day_of_week<-ordered(cyclistic3$day_of_week, 
+levels=c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+
+
+aggregate(cyclistic3$ride_length_min~cyclistic3$member_casual 
+          + cyclistic3$day_of_week, FUN = mean)
+
+
+View(average_ride_day_of_week)
+View(cyclistic3)
+
+#Sort by rider type and day of the week
+
+cyclistic3 %>%
+  mutate(weekday=wday(started_at, label = TRUE)) %>%
+  group_by(member_casual, weekday) %>%
+  summarize(number_of_rides=n(), average_duration_mins = mean(ride_length_min)) %>%
+  arrange(member_casual, weekday)
+
+#Some simple visualizations with R
+
+
+cyclistic3 %>%
+  mutate(weekday = wday(started_at, label = TRUE)) %>%
+  group_by(member_casual, weekday) %>%
+  summarize(number_of_rides = n(), average_duration_mins = mean(ride_length_min)) %>%
+  arrange(member_casual, weekday) %>%
+  ggplot(aes(x = weekday, y = number_of_rides, fill = member_casual)) + geom_col(position = "dodge") + scale_y_continuous(labels = comma)
+
+
+#From this graph, we can gather that casual users are more likely to use the
+#bikes on the weekend. Members are more likely to use the bikes during the week.
+#Members may use these bikes for commuting to work through the week, where 
+#Casual users may be using them on the weekends for fun. 
+
+
+#Average ride duration visualization
+
+cyclistic3 %>%
+  mutate(weekday = wday(started_at, label = TRUE)) %>%
+  group_by(member_casual, weekday) %>%
+  summarize(number_of_rides = n(), average_duration_mins = mean(ride_length_min)) %>%
+  arrange(member_casual, weekday) %>%
+  ggplot(aes(x = weekday, y = average_duration_mins, fill = member_casual)) + geom_col(position = "dodge") + 
+  scale_y_continuous(labels = comma)
+
+
+#Determine which bike is the most popular
+
+cyclistic3 %>%
+  group_by(rideable_type, member_casual) %>%
+  summarize(number_of_trips = n()) %>%
+  ggplot(aes(x = rideable_type, y = number_of_trips, fill = member_casual)) + 
+  geom_bar(stat = 'identity') + scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) + 
+  labs(title = "Members Vs Casuals: Bike Type")
+
+
