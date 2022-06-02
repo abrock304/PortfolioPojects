@@ -174,7 +174,7 @@ cyclistic$year <- format(as.Date(cyclistic$date), "%Y")
 cyclistic$day_of_week <- format(as.Date(cyclistic$date), "%A")
 
 
-#Calculate length of ride (in hours, minutes, days)
+#Calculate length of ride (in hours and minutes)
 
 cyclistic$ride_length_hrs <- difftime(cyclistic$ended_at, cyclistic$started_at,
                                       units = c("hours"))
@@ -188,26 +188,26 @@ View(cyclistic)
 #If I was able to ask the stakeholder about the data, I would ask more about the length
 #of the rides to properly identify outliers
 
-cyclistic2<-cyclistic[!(cyclistic$ride_length_min<=0),]
-cyclistic3<-cyclistic2[!(cyclistic2$ride_length_min>=60000),]
+cyclistic<-cyclistic[!(cyclistic$ride_length_min<=0),]
+cyclistic<-cyclistic[!(cyclistic$ride_length_min>=60000),]
 
-View(cyclistic3)
+View(cyclistic)
 
 
 #Calculate some simple statistical analysis
 
-mean(cyclistic3$ride_length_min)
-median(cyclistic3$ride_length_min)
-max(cyclistic3$ride_length_min)
-min(cyclistic3$ride_length_min)
+mean(cyclistic$ride_length_min)
+median(cyclistic$ride_length_min)
+max(cyclistic$ride_length_min)
+min(cyclistic$ride_length_min)
 
 
 #Compare usage of bikes by user type
 
-user_type_mean <- aggregate(cyclistic3$ride_length_min~cyclistic3$member_casual, FUN=mean)
-user_type_median <- aggregate(cyclistic3$ride_length_min~cyclistic3$member_casual, FUN=median)
-user_type_max <- aggregate(cyclistic3$ride_length_min~cyclistic3$member_casual, FUN=max)
-user_type_min <- aggregate(cyclistic3$ride_length_min~cyclistic3$member_casual, FUN=min)
+user_type_mean <- aggregate(cyclistic$ride_length_min~cyclistic$member_casual, FUN=mean)
+user_type_median <- aggregate(cyclistic$ride_length_min~cyclistic$member_casual, FUN=median)
+user_type_max <- aggregate(cyclistic$ride_length_min~cyclistic$member_casual, FUN=max)
+user_type_min <- aggregate(cyclistic$ride_length_min~cyclistic$member_casual, FUN=min)
 
 user_type_mean
 user_type_median
@@ -217,23 +217,23 @@ user_type_min
 
 #average length of ride of casual and member riders by the day of the week
 
-average_ride_day_of_week <- aggregate(cyclistic3$ride_length_min~cyclistic3$member_casual + 
-            cyclistic3$day_of_week, FUN = mean)
+average_ride_day_of_week <- aggregate(cyclistic$ride_length_min~cyclistic$member_casual + 
+            cyclistic$day_of_week, FUN = mean)
 
-cyclistic3$day_of_week<-ordered(cyclistic3$day_of_week, 
+cyclistic$day_of_week<-ordered(cyclistic$day_of_week, 
 levels=c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
 
 
-aggregate(cyclistic3$ride_length_min~cyclistic3$member_casual 
-          + cyclistic3$day_of_week, FUN = mean)
+aggregate(cyclistic$ride_length_min~cyclistic$member_casual 
+          + cyclistic$day_of_week, FUN = mean)
 
 
 View(average_ride_day_of_week)
-View(cyclistic3)
+View(cyclistic)
 
 #Sort by rider type and day of the week
 
-cyclistic3 %>%
+cyclistic %>%
   mutate(weekday=wday(started_at, label = TRUE)) %>%
   group_by(member_casual, weekday) %>%
   summarize(number_of_rides=n(), average_duration_mins = mean(ride_length_min)) %>%
@@ -242,12 +242,15 @@ cyclistic3 %>%
 #Some simple visualizations with R
 
 
-cyclistic3 %>%
+cyclistic %>%
   mutate(weekday = wday(started_at, label = TRUE)) %>%
   group_by(member_casual, weekday) %>%
   summarize(number_of_rides = n(), average_duration_mins = mean(ride_length_min)) %>%
   arrange(member_casual, weekday) %>%
   ggplot(aes(x = weekday, y = number_of_rides, fill = member_casual)) + geom_col(position = "dodge") + scale_y_continuous(labels = comma)
+
+
+
 
 
 #From this graph, we can gather that casual users are more likely to use the
@@ -258,7 +261,7 @@ cyclistic3 %>%
 
 #Average ride duration visualization
 
-cyclistic3 %>%
+cyclistic %>%
   mutate(weekday = wday(started_at, label = TRUE)) %>%
   group_by(member_casual, weekday) %>%
   summarize(number_of_rides = n(), average_duration_mins = mean(ride_length_min)) %>%
@@ -269,7 +272,7 @@ cyclistic3 %>%
 
 #Determine which bike is the most popular
 
-cyclistic3 %>%
+cyclistic %>%
   group_by(rideable_type, member_casual) %>%
   summarize(number_of_trips = n()) %>%
   ggplot(aes(x = rideable_type, y = number_of_trips, fill = member_casual)) + 
