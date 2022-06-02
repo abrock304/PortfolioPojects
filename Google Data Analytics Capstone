@@ -250,8 +250,7 @@ cyclistic %>%
   ggplot(aes(x = weekday, y = number_of_rides, fill = member_casual)) + geom_col(position = "dodge") + scale_y_continuous(labels = comma)
 
 
-https://user-images.githubusercontent.com/83080759/171722156-0441b429-a06c-42da-8297-84d430a9dab8.png
-
+https://github.com/abrock304/PortfolioPojects/issues/1#issue-1258609490
 
 #From this graph, we can gather that casual users are more likely to use the
 #bikes on the weekend. Members are more likely to use the bikes during the week.
